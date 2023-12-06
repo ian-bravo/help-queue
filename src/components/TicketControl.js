@@ -11,7 +11,10 @@ import {
   doc,
   updateDoc,
   deleteDoc,
+  query,
+  orderBy
 } from "firebase/firestore";
+import { formatDistanceToNow } from 'date-fns';
 
 function TicketControl() {
   // constructor(props) {
@@ -30,15 +33,43 @@ function TicketControl() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    function updateTicketElapsedWaitTime() {
+      const newMainTicketList = mainTicketList.map(ticket => {
+        const newFormattedWaitTime = formatDistanceToNow(ticket.timeOpen);
+        return {...ticket, formattedWaitTime: newFormattedWaitTime};
+      });
+      setMainTicketList(newMainTicketList);
+    }
+
+    const waitTimeUpdateTimer = setInterval(() =>
+      updateTicketElapsedWaitTime(), 
+      60000
+    );
+
+    return function cleanup() {
+      clearInterval(waitTimeUpdateTimer);
+    }
+  }, [mainTicketList])
+
+    const queryByTimestamp = query(
+      collection(db, "tickets"), 
+      orderBy('timeOpen')
+    );
+
+    useEffect(() => {  
     const unSubscribe = onSnapshot(
-      collection(db, "tickets"),
-      (collectionSnapshot) => {
+      queryByTimestamp, 
+      (querySnapshot) => {
         const tickets = [];
-        collectionSnapshot.forEach((doc) => {
+        querySnapshot.forEach((doc) => {
+          const timeOpen = doc.get('timeOpen', {serverTimestamps: "estimate"}).toDate();
+          const jsDate = new Date(timeOpen);
           tickets.push({
             names: doc.data().names,
             location: doc.data().location,
             issue: doc.data().issue,
+            timeOpen: jsDate,
+            formattedWaitTime: formatDistanceToNow(jsDate),
             id: doc.id,
           });
         });
@@ -52,9 +83,12 @@ function TicketControl() {
     return () => unSubscribe();
   }, []);
 
+
+
   const handleClick = () => {
     if (selectedTicket != null) {
       setFormVisibleOnPage(false);
+      setSelectedTicket(null); 
       setEditing(false);
     } else {
       setFormVisibleOnPage(!formVisibleOnPage);

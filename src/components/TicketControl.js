@@ -4,7 +4,7 @@ import TicketList from "./TicketList";
 import EditTicketForm from "./EditTicketForm";
 import TicketDetail from "./TicketDetail";
 import db from './../firebase.js';
-import { collection, addDoc, onSnapshot, deleteDoc } from "firebase/firestore";
+import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore";
 
 
 function TicketControl() {
@@ -16,7 +16,7 @@ function TicketControl() {
   //     selectedTicket: null,
   //     editing: false
   //   };
-  // }
+  // }                                                          
   const [formVisibleOnPage, setFormVisibleOnPage] = useState(false);
   const [mainTicketList, setMainTicketList] = useState([]);
   const [selectedTicket, setSelectedTicket] = useState(null);
@@ -55,10 +55,12 @@ function TicketControl() {
     }
   };
 
-  const handleDeletingTicket = (id) => {
+  const handleDeletingTicket = async (id) => {
+    await deleteDoc(doc(db, "tickets", id));
     
-    const newMainTicketList = mainTicketList.filter(ticket => ticket.id !== id);
-    setMainTicketList(newMainTicketList);
+    // const newMainTicketList = mainTicketList.filter(ticket => ticket.id !== id);
+    // setMainTicketList(newMainTicketList);
+
     // const newMainTicketList = this.state.mainTicketList.filter(
     //   (ticket) => ticket.id !== id
     // );
@@ -74,11 +76,21 @@ function TicketControl() {
     setEditing(true);
   };
 
-  const handleEditingTicketInList = (ticketToEdit) => {
-    const editedMainTicketList = mainTicketList
-    .filter((ticket) => ticket.id !== selectedTicket.id)
-    .concat(ticketToEdit);
-    setMainTicketList(editedMainTicketList);
+  // const handleEditingTicketInList = async (ticketToEdit) => {
+  //   await updateDoc(doc(db, "tickets", ticketToEdit.id), ticketToEdit);
+  //   setEditing(false);
+  //   setSelectedTicket(null);
+  // }
+
+  const handleEditingTicketInList = async (ticketToEdit) => {
+    const ticketRef = doc(db, "tickets", ticketToEdit.id);
+    await updateDoc(ticketRef, ticketToEdit);
+    
+    // const editedMainTicketList = mainTicketList
+    // .filter((ticket) => ticket.id !== selectedTicket.id)
+    // .concat(ticketToEdit);
+    // setMainTicketList(editedMainTicketList);
+
       // this.setState({
     //   mainTicketList: editedMainTicketList,
     //   editing: false,

@@ -1,6 +1,7 @@
 npm install firebase,
 npm install router,
-npm install date-fns
+npm install date-fns,
+npm install firebase-tools
 
 # Getting Started with Create React App
 

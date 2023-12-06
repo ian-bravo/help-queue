@@ -51,12 +51,14 @@ function TicketControl() {
     }
   }, [mainTicketList])
 
+    
+
+    useEffect(() => {  
     const queryByTimestamp = query(
       collection(db, "tickets"), 
       orderBy('timeOpen')
     );
-
-    useEffect(() => {  
+    
     const unSubscribe = onSnapshot(
       queryByTimestamp, 
       (querySnapshot) => {
@@ -82,8 +84,6 @@ function TicketControl() {
 
     return () => unSubscribe();
   }, []);
-
-
 
   const handleClick = () => {
     if (selectedTicket != null) {
